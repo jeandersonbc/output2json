@@ -14,7 +14,7 @@ public class Main {
 		Convertable c = new EpiccOutput(path);
 		List<JsonObject> output = c.convert();
 
-		File report = File.createTempFile("output-epicc", ".txt", new File("."));
+		File report = File.createTempFile("output-epicc", ".json", new File("."));
 		PrintWriter pw = new PrintWriter(new BufferedOutputStream(new FileOutputStream(report)));
 		pw.write(output.toString());
 		pw.close();
