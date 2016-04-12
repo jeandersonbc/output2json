@@ -5,8 +5,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 import java.util.regex.Pattern;
 
 import output2json.JsonObject.FieldsLabel;
@@ -19,7 +19,7 @@ public class EpiccOutput implements Convertable {
 		this.file = new File(path);
 	}
 
-	public List<JsonObject> convert() {
+	public List<JsonObject> convert() throws IOException {
 		ArrayList<JsonObject> jsonObjs = new ArrayList<JsonObject>();
 		BufferedReader br = null;
 		try {
@@ -47,6 +47,9 @@ public class EpiccOutput implements Convertable {
 		} catch (IOException e) {
 			throw new RuntimeException("Error while processing lines from " + this.file.getName());
 
+		} finally {
+			if (br != null)
+				br.close();
 		}
 		return jsonObjs;
 	}
@@ -55,25 +58,36 @@ public class EpiccOutput implements Convertable {
 		JsonObject json = new JsonObject();
 		json.add(FieldsLabel.SCOPE, scope);
 
-		// FIXME: breaks on cases like "Package: com/commonsware/android/arXiv,
-		// Class: com/commonsware/android/arXiv/SearchListWindow, Extras:
-		// [keyquery, keyname, keyurl], "
-		valuesLine = "Scope: " + scope + ", "  + valuesLine;
 		String values = valuesLine.replaceAll("( )+", " ");
-		System.out.println(values);
-//		for (String value : values) {
-//			if (Pattern.matches("Action:(.)+", value)) {
-//				json.add(FieldsLabel.ACTION, value.replaceAll("Action:", ""));
-//
-//			} else if (Pattern.matches("Package:(.)+", value)) {
-//				json.add(FieldsLabel.COMPONENT, normalizeEntityName(value.replaceAll("Package:", "")));
-//			} else if (Pattern.matches("Class:(.)+", value)) {
-//				String className = value.replaceAll("(.)+/", "");
-//				json.add(FieldsLabel.COMPONENT, className + ".class");
-//			} else if (Pattern.matches("Flags:(.)+", value)) {
-//				json.add(FieldsLabel.FLAGS, value);
-//			}
-//		}
+		Scanner sc = new Scanner(values);
+		while (sc.hasNext()) {
+			String attribute = sc.next();
+			if (Pattern.matches("Action:", attribute)) {
+				String value = sc.next().replace(",", "");
+				json.add(FieldsLabel.ACTION, value);
+
+			} else if (Pattern.matches("Package:", attribute)) {
+				String value = sc.next().replace(",", "");
+				json.add(FieldsLabel.COMPONENT, normalizeEntityName(value.replaceAll(",", "")));
+
+			} else if (Pattern.matches("Class:", attribute)) {
+				String className = sc.next().replace(",", "").replaceAll("(.)+/", "");
+				json.add(FieldsLabel.COMPONENT, className + ".class");
+
+			} else if (Pattern.matches("Extras:", attribute)) {
+				String extrasSequence = sc.skip("( )*\\[").useDelimiter("]").next();
+				json.add(FieldsLabel.EXTRAS, extrasSequence);
+
+				// Back to default delimiter so it won't disturb next
+				// readings
+				sc.reset();
+
+			} else if (Pattern.matches("Flags:", attribute)) {
+				json.add(FieldsLabel.FLAGS, sc.next());
+			}
+		}
+		sc.close();
+
 		return json;
 	}
 
