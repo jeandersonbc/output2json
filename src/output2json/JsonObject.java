@@ -37,9 +37,8 @@ public class JsonObject {
 	public JsonObject add(FieldsLabel label, String value) {
 		String previousContent = this.fieldsMap.put(label, value);
 		if (!DEFAULT_VALUE.equals(previousContent)) {
-			System.err.println(
-					String.format("\nPREVIOUS CONTENT WAS OVERWRITTEN FOR %s!\n\tOld: %s\n\tNew: %s\n", label,
-							previousContent, value));
+			System.err.println(String.format("\nPREVIOUS CONTENT WAS OVERWRITTEN FOR %s!\n\tOld: %s\n\tNew: %s\n",
+					label, previousContent, value));
 		}
 		return this;
 	}
@@ -52,11 +51,11 @@ public class JsonObject {
 		FieldsLabel key = null;
 		for (int i = 0; i < labels.length - 1; i++) {
 			key = labels[i];
-			builder.append("\"" + key.toString() + "\": \"").append(this.fieldsMap.get(key)).append("\",");
+			builder.append("\n    \"" + key.toString() + "\": \"").append(this.fieldsMap.get(key)).append("\",");
 		}
 		key = labels[labels.length - 1];
-		builder.append("\"" + key.toString() + "\": \"").append(this.fieldsMap.get(key)).append("\"");
+		builder.append("\n    \"" + key.toString() + "\": \"").append(this.fieldsMap.get(key)).append("\"");
 
-		return builder.append("}").toString();
+		return builder.append("\n}").toString();
 	}
 }
