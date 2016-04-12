@@ -84,6 +84,8 @@ public class EpiccOutput implements Convertable {
 
 			} else if (Pattern.matches("Flags:", attribute)) {
 				json.add(FieldsLabel.FLAGS, sc.next());
+			} else {
+				System.err.printf("Warning: Ignored content \"%s\"\n", attribute);
 			}
 		}
 		sc.close();
