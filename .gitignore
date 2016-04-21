@@ -2,3 +2,5 @@ output*.txt
 *.class
 /bin/
 *.json
+/target/
+.settings/
